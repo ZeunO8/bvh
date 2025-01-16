@@ -15,10 +15,12 @@ template <typename T, size_t N>
 struct Tri {
     Vec<T, N> p0, p1, p2;
 
+    void *userData;
+
     Tri() = default;
 
-    BVH_ALWAYS_INLINE Tri(const Vec<T, N>& p0, const Vec<T, N>& p1, const Vec<T, N>& p2)
-        : p0(p0), p1(p1), p2(p2)
+    BVH_ALWAYS_INLINE Tri(const Vec<T, N>& p0, const Vec<T, N>& p1, const Vec<T, N>& p2, void *userData = 0)
+        : p0(p0), p1(p1), p2(p2), userData(userData)
     {}
 
     BVH_ALWAYS_INLINE BBox<T, N> get_bbox() const { return BBox<T, N>(p0).extend(p1).extend(p2); }
