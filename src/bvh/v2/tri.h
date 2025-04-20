@@ -19,7 +19,7 @@ struct Tri {
 
     Tri() = default;
 
-    BVH_ALWAYS_INLINE Tri(const Vec<T, N>& p0, const Vec<T, N>& p1, const Vec<T, N>& p2, void *userData = 0)
+    BVH_ALWAYS_INLINE Tri(const Vec<T, N>& p0, const Vec<T, N>& p1, const Vec<T, N>& p2, UserDataT *userData = 0)
         : p0(p0), p1(p1), p2(p2), userData(userData)
     {}
 
