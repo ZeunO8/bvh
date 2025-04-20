@@ -54,7 +54,7 @@ struct Bvh {
     BVH_ALWAYS_INLINE const Node& get_root() const { return nodes[0]; }
 
     /// Extracts the BVH rooted at the given node index.
-    inline Bvh extract_bvh(size_t root_id) const;
+    [[nodiscard]] inline Bvh extract_bvh(size_t root_id) const;
 
     /// Traverses the BVH from the given index in `start` using the provided stack. Every leaf
     /// encountered on the way is processed using the given `LeafFn` function, and every pair of
@@ -81,8 +81,11 @@ struct Bvh {
     template <typename LeafFn = IgnoreArgs>
     inline void refit(LeafFn&& = {});
 
+    template <typename IndexType = typename Index::Type>
     inline void serialize(OutputStream&) const;
-    static inline Bvh deserialize(InputStream&);
+
+    template <typename IndexType = typename Index::Type>
+    [[nodiscard]] static inline Bvh deserialize(InputStream&);
 };
 
 template <typename Node>
@@ -215,24 +218,26 @@ void Bvh<Node>::refit(LeafFn&& leaf_fn) {
 }
 
 template <typename Node>
+template <typename IndexType>
 void Bvh<Node>::serialize(OutputStream& stream) const {
-    stream.write(nodes.size());
-    stream.write(prim_ids.size());
+    stream.write(static_cast<IndexType>(nodes.size()));
+    stream.write(static_cast<IndexType>(prim_ids.size()));
     for (auto&& node : nodes)
         node.serialize(stream);
     for (auto&& prim_id : prim_ids)
-        stream.write(prim_id);
+        stream.write(static_cast<IndexType>(prim_id));
 }
 
 template <typename Node>
+template <typename IndexType>
 Bvh<Node> Bvh<Node>::deserialize(InputStream& stream) {
     Bvh bvh;
-    bvh.nodes.resize(stream.read<size_t>());
-    bvh.prim_ids.resize(stream.read<size_t>());
+    bvh.nodes.resize(stream.read<IndexType>());
+    bvh.prim_ids.resize(stream.read<IndexType>());
     for (auto& node : bvh.nodes)
         node = Node::deserialize(stream);
     for (auto& prim_id : bvh.prim_ids)
-        prim_id = stream.read<size_t>();
+        prim_id = stream.read<IndexType>();
     return bvh;
 }
 
