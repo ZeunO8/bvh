@@ -11,11 +11,11 @@
 
 namespace bvh::v2 {
 
-template <typename T, size_t N>
+template <typename T, size_t N, typename UserDataT>
 struct Tri {
     Vec<T, N> p0, p1, p2;
 
-    void *userData;
+    UserDataT *userData;
 
     Tri() = default;
 
@@ -28,7 +28,7 @@ struct Tri {
 };
 
 /// A 3d triangle, represented as two edges and a point, with an (unnormalized, left-handed) normal.
-template <typename T>
+template <typename T, typename UserDataT>
 struct PrecomputedTri {
     Vec<T, 3> p0, e1, e2, n;
 
@@ -38,11 +38,11 @@ struct PrecomputedTri {
         : p0(p0), e1(p0 - p1), e2(p2 - p0), n(cross(e1, e2))
     {}
 
-    BVH_ALWAYS_INLINE PrecomputedTri(const Tri<T, 3>& triangle)
+    BVH_ALWAYS_INLINE PrecomputedTri(const Tri<T, 3, UserDataT>& triangle)
         : PrecomputedTri(triangle.p0, triangle.p1, triangle.p2)
     {}
 
-    BVH_ALWAYS_INLINE Tri<T, 3> convert_to_tri() const { return Tri<T, 3>(p0, p0 - e1, e2 + p0); }
+    BVH_ALWAYS_INLINE Tri<T, 3, UserDataT> convert_to_tri() const { return Tri<T, 3, UserDataT>(p0, p0 - e1, e2 + p0); }
     BVH_ALWAYS_INLINE BBox<T, 3> get_bbox() const { return convert_to_tri().get_bbox(); }
     BVH_ALWAYS_INLINE Vec<T, 3> get_center() const { return convert_to_tri().get_center(); }
 
@@ -55,8 +55,8 @@ struct PrecomputedTri {
         T tolerance = -std::numeric_limits<T>::epsilon()) const;
 };
 
-template <typename T>
-std::optional<std::pair<T, T>> PrecomputedTri<T>::intersect(Ray<T, 3>& ray, T tolerance) const {
+template <typename T, typename UserDataT>
+std::optional<std::pair<T, T>> PrecomputedTri<T, UserDataT>::intersect(Ray<T, 3>& ray, T tolerance) const {
     auto c = p0 - ray.org;
     auto r = cross(ray.dir, c);
     auto inv_det = static_cast<T>(1.) / dot(n, ray.dir);
